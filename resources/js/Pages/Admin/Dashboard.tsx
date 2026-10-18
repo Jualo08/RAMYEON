@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import AdminPageHeader from '@/Components/AdminPageHeader';
 
@@ -78,19 +79,11 @@ interface Props {
     monthlyCustomers: MonthlyCustomer[];
 }
 
+/* ───────── Constants & helpers ───────── */
+
 const monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
 const chartMonths = monthNames.map((name, index) => ({
@@ -98,26 +91,181 @@ const chartMonths = monthNames.map((name, index) => ({
     monthNumber: index + 1,
 }));
 
-const formatCurrency = (value: string | number) => {
-    return `₱${Number(value).toLocaleString('en-PH', {
+const COLORS = {
+    primary: '#DC2626',
+    dark: '#B91C1C',
+    soft: '#F87171',
+};
+
+const axisTick = { fontSize: 12, fill: '#6b7280' };
+
+const tooltipStyle = {
+    borderRadius: '12px',
+    border: '1px solid #e5e7eb',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+    padding: '10px 12px',
+};
+
+const formatCurrency = (value: string | number) =>
+    `₱${Number(value).toLocaleString('en-PH', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })}`;
-};
 
-const formatNumber = (value: string | number) => {
-    return Number(value).toLocaleString('en-PH');
-};
+const formatNumber = (value: string | number) =>
+    Number(value).toLocaleString('en-PH');
 
-const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('en-PH', {
+const formatDate = (date: string) =>
+    new Date(date).toLocaleString('en-PH', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
     });
+
+/* ───────── Icons ───────── */
+
+const icons = {
+    users: (
+        <>
+            <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+        </>
+    ),
+    cart: (
+        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 2h12M10 19a1 1 0 11-2 0m9 0a1 1 0 11-2 0" />
+    ),
+    gift: (
+        <path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M2 7h20v5H2zM12 7v14M12 7H8.5a2.5 2.5 0 115-1c0 1.5-1.5 1-1.5 1zM12 7h3.5a2.5 2.5 0 10-5-1c0 1.5 1 1 1.5 1z" />
+    ),
+    cashier: (
+        <>
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <path d="M3 9h18M7 14h4" />
+        </>
+    ),
 };
+
+function Icon({ name }: { name: keyof typeof icons }) {
+    return (
+        <svg
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            {icons[name]}
+        </svg>
+    );
+}
+
+/* ───────── Reusable pieces ───────── */
+
+function Card({
+    children,
+    className = '',
+}: {
+    children: ReactNode;
+    className?: string;
+}) {
+    return (
+        <section
+            className={`overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm ${className}`}
+        >
+            {children}
+        </section>
+    );
+}
+
+function CardHeader({
+    title,
+    description,
+    badge,
+}: {
+    title: string;
+    description: string;
+    badge?: ReactNode;
+}) {
+    return (
+        <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
+            <div className="min-w-0">
+                <h2 className="text-base font-bold tracking-tight text-gray-900">
+                    {title}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">{description}</p>
+            </div>
+
+            {badge && (
+                <div className="hidden shrink-0 items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 sm:flex">
+                    {badge}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function StatCard({
+    label,
+    value,
+    icon,
+    footer,
+}: {
+    label: string;
+    value: string;
+    icon: keyof typeof icons;
+    footer: ReactNode;
+}) {
+    return (
+        <div className="rounded-2xl border border-gray-200/80 border-t-2 border-t-red-600 bg-white p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-500">
+                        {label}
+                    </p>
+                    <p className="mt-3 truncate text-3xl font-bold tracking-tight text-gray-900">
+                        {value}
+                    </p>
+                </div>
+
+                <div className="shrink-0 rounded-xl bg-red-50 p-3 text-red-600">
+                    <Icon name={icon} />
+                </div>
+            </div>
+
+            <p className="mt-5 border-t border-gray-100 pt-4 text-xs text-gray-500">
+                {footer}
+            </p>
+        </div>
+    );
+}
+
+function EmptyState({
+    icon,
+    title,
+    text,
+}: {
+    icon: keyof typeof icons;
+    title: string;
+    text: string;
+}) {
+    return (
+        <div className="px-6 py-14 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+                <Icon name={icon} />
+            </div>
+            <p className="mt-4 text-sm font-semibold text-gray-800">{title}</p>
+            <p className="mt-1 text-xs text-gray-500">{text}</p>
+        </div>
+    );
+}
+
+/* ───────── Page ───────── */
 
 export default function Dashboard({
     stats,
@@ -167,8 +315,8 @@ export default function Dashboard({
             <Head title="Admin Dashboard" />
 
             <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-                <div className="mx-auto max-w-7xl">
-                    {/* Dashboard Header */}
+                <div className="mx-auto max-w-7xl space-y-6">
+                    {/* Header */}
                     <AdminPageHeader
                         eyebrow="Overview"
                         title="Admin Dashboard"
@@ -189,271 +337,103 @@ export default function Dashboard({
                         }
                     />
 
-                    {/* KPI Cards */}
+                    {/* KPI cards */}
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {/* Total Customers */}
-                        <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                            <div className="absolute left-0 top-0 h-full w-1 bg-red-600" />
-
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">
-                                        Total Customers
-                                    </p>
-
-                                    <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                        {formatNumber(stats.totalCustomers)}
-                                    </p>
-                                </div>
-
-                                <div className="rounded-xl bg-red-50 p-3 text-red-600">
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
-                                        />
-
-                                        <circle
-                                            cx="9"
-                                            cy="7"
-                                            r="4"
-                                        />
-
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div className="mt-5 flex items-center gap-2 border-t border-gray-100 pt-4">
-                                <span className="font-semibold text-green-600">
-                                    {formatNumber(stats.activeCustomers)}
-                                </span>
-
-                                <span className="text-xs text-gray-500">
+                        <StatCard
+                            label="Total Customers"
+                            value={formatNumber(stats.totalCustomers)}
+                            icon="users"
+                            footer={
+                                <>
+                                    <span className="font-semibold text-gray-900">
+                                        {formatNumber(stats.activeCustomers)}
+                                    </span>{' '}
                                     active customers
-                                </span>
-                            </div>
-                        </div>
+                                </>
+                            }
+                        />
 
-                        {/* Total Purchases */}
-                        <div className="relative overflow-hidden rounded-2xl border border-red-100 bg-white p-6 shadow-sm">
-                            <div className="absolute left-0 top-0 h-full w-1 bg-red-600" />
+                        <StatCard
+                            label="Total Purchases"
+                            value={formatCurrency(stats.totalPurchaseAmount)}
+                            icon="cart"
+                            footer="Across all recorded transactions"
+                        />
 
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">
-                                        Total Purchases
-                                    </p>
-
-                                    <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                        {formatCurrency(stats.totalPurchaseAmount)}
-                                    </p>
-                                </div>
-
-                                <div className="rounded-xl bg-red-600 p-3 text-white">
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 2h12M10 19a1 1 0 11-2 0m9 0a1 1 0 11-2 0"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div className="mt-5 border-t border-gray-100 pt-4">
-                                <span className="text-xs text-gray-500">
-                                    Across all recorded transactions
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Reward Redemptions */}
-                        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">
-                                        Reward Redemptions
-                                    </p>
-                                    <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                        {formatNumber(stats.totalRedemptions)}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl bg-yellow-50 p-3 text-yellow-600">
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M2 7h20v5H2zM12 7v14M12 7H8.5a2.5 2.5 0 115-1c0 1.5-1.5 1-1.5 1zM12 7h3.5a2.5 2.5 0 10-5-1c0 1.5 1 1 1.5 1z"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="mt-5 flex items-center gap-2 border-t border-gray-100 pt-4">
-                                <span className="font-semibold text-gray-700">
-                                    {formatNumber(stats.activeRewards)}
-                                </span>
-                                <span className="text-xs text-gray-500">
+                        <StatCard
+                            label="Reward Redemptions"
+                            value={formatNumber(stats.totalRedemptions)}
+                            icon="gift"
+                            footer={
+                                <>
+                                    <span className="font-semibold text-gray-900">
+                                        {formatNumber(stats.activeRewards)}
+                                    </span>{' '}
                                     active rewards
-                                </span>
-                            </div>
-                        </div>
+                                </>
+                            }
+                        />
 
-                        {/* Cashier Accounts */}
-                        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">
-                                        Cashier Accounts
-                                    </p>
-                                    <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                        {formatNumber(stats.totalCashiers)}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl bg-yellow-50 p-3 text-yellow-600">
-                                    <svg
-                                        className="h-5 w-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
-                                        />
-                                        <circle
-                                            cx="9"
-                                            cy="7"
-                                            r="4"
-                                        />
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="mt-5 border-t border-gray-100 pt-4">
-                                <span className="text-xs text-gray-500">
-                                    Cashier accounts registered in the system
-                                </span>
-                            </div>
-                        </div>
+                        <StatCard
+                            label="Cashier Accounts"
+                            value={formatNumber(stats.totalCashiers)}
+                            icon="cashier"
+                            footer="Registered in the system"
+                        />
                     </div>
 
-                    {/* Analytics */}
-                    <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                        {/* Purchase Activity */}
-                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div className="border-b border-gray-100 px-6 py-5">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <h2 className="text-lg font-bold tracking-tight text-gray-900">
-                                            Purchase Activity
-                                        </h2>
-
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Monthly purchase amount recorded for {new Date().getFullYear()}.
-                                        </p>
-                                    </div>
-
-                                    <div className="hidden shrink-0 items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 sm:flex">
+                    {/* Charts */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        <Card>
+                            <CardHeader
+                                title="Purchase Activity"
+                                description={`Monthly purchase amount for ${new Date().getFullYear()}.`}
+                                badge={
+                                    <>
                                         <span className="h-2 w-2 rounded-full bg-red-600" />
                                         Purchases
-                                    </div>
-                                </div>
-                            </div>
+                                    </>
+                                }
+                            />
 
                             <div className="px-4 pb-5 pt-6 sm:px-6">
                                 <div className="h-72">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
                                             data={transactionChartData}
-                                            margin={{
-                                                top: 8,
-                                                right: 8,
-                                                left: 8,
-                                                bottom: 4,
-                                            }}
+                                            margin={{ top: 8, right: 8, left: 8, bottom: 4 }}
                                         >
                                             <CartesianGrid
                                                 strokeDasharray="3 3"
                                                 vertical={false}
                                                 stroke="#f1f5f9"
                                             />
-
                                             <XAxis
                                                 dataKey="month"
                                                 tickLine={false}
                                                 axisLine={false}
-                                                tick={{
-                                                    fontSize: 12,
-                                                    fill: '#6b7280',
-                                                }}
+                                                tick={axisTick}
                                                 dy={8}
                                             />
-
                                             <YAxis
                                                 tickLine={false}
                                                 axisLine={false}
-                                                tick={{
-                                                    fontSize: 12,
-                                                    fill: '#6b7280',
-                                                }}
+                                                tick={axisTick}
                                                 tickFormatter={(value) =>
                                                     `₱${Number(value).toLocaleString('en-PH')}`
                                                 }
                                                 width={58}
                                             />
-
                                             <Tooltip
-                                                cursor={{
-                                                    fill: '#fef2f2',
-                                                }}
-                                                contentStyle={{
-                                                    borderRadius: '12px',
-                                                    border: '1px solid #e5e7eb',
-                                                    boxShadow:
-                                                        '0 8px 24px rgba(0, 0, 0, 0.08)',
-                                                    padding: '10px 12px',
-                                                }}
+                                                cursor={{ fill: '#fef2f2' }}
+                                                contentStyle={tooltipStyle}
                                                 labelStyle={{
                                                     color: '#111827',
                                                     fontWeight: 600,
                                                     marginBottom: '4px',
                                                 }}
                                                 itemStyle={{
-                                                    color: '#dc2626',
+                                                    color: COLORS.primary,
                                                     fontSize: '13px',
                                                 }}
                                                 formatter={(value) => [
@@ -461,10 +441,9 @@ export default function Dashboard({
                                                     'Purchase Amount',
                                                 ]}
                                             />
-
                                             <Bar
                                                 dataKey="amount"
-                                                fill="#dc2626"
+                                                fill={COLORS.primary}
                                                 radius={[6, 6, 0, 0]}
                                                 maxBarSize={36}
                                             />
@@ -472,87 +451,56 @@ export default function Dashboard({
                                     </ResponsiveContainer>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        {/* Customer Growth */}
-                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div className="border-b border-gray-100 px-6 py-5">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <h2 className="text-lg font-bold tracking-tight text-gray-900">
-                                            Customer Growth
-                                        </h2>
-
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            New loyalty customers registered each month.
-                                        </p>
-                                    </div>
-
-                                    <div className="hidden shrink-0 items-center gap-2 rounded-full bg-yellow-50 px-3 py-1.5 text-xs font-medium text-yellow-700 sm:flex">
-                                        <span className="h-2 w-2 rounded-full bg-yellow-500" />
+                        <Card>
+                            <CardHeader
+                                title="Customer Growth"
+                                description="New loyalty customers registered each month."
+                                badge={
+                                    <>
+                                        <span className="h-2 w-2 rounded-full bg-red-400" />
                                         Customers
-                                    </div>
-                                </div>
-                            </div>
+                                    </>
+                                }
+                            />
 
                             <div className="px-4 pb-5 pt-6 sm:px-6">
                                 <div className="h-72">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
                                             data={customerChartData}
-                                            margin={{
-                                                top: 8,
-                                                right: 8,
-                                                left: 8,
-                                                bottom: 4,
-                                            }}
+                                            margin={{ top: 8, right: 8, left: 8, bottom: 4 }}
                                         >
                                             <CartesianGrid
                                                 strokeDasharray="3 3"
                                                 vertical={false}
                                                 stroke="#f1f5f9"
                                             />
-
                                             <XAxis
                                                 dataKey="month"
                                                 tickLine={false}
                                                 axisLine={false}
-                                                tick={{
-                                                    fontSize: 12,
-                                                    fill: '#6b7280',
-                                                }}
+                                                tick={axisTick}
                                                 dy={8}
                                             />
-
                                             <YAxis
                                                 allowDecimals={false}
                                                 tickLine={false}
                                                 axisLine={false}
-                                                tick={{
-                                                    fontSize: 12,
-                                                    fill: '#6b7280',
-                                                }}
+                                                tick={axisTick}
                                                 width={32}
                                             />
-
                                             <Tooltip
-                                                cursor={{
-                                                    fill: '#fefce8',
-                                                }}
-                                                contentStyle={{
-                                                    borderRadius: '12px',
-                                                    border: '1px solid #e5e7eb',
-                                                    boxShadow:
-                                                        '0 8px 24px rgba(0, 0, 0, 0.08)',
-                                                    padding: '10px 12px',
-                                                }}
+                                                cursor={{ fill: '#fef2f2' }}
+                                                contentStyle={tooltipStyle}
                                                 labelStyle={{
                                                     color: '#111827',
                                                     fontWeight: 600,
                                                     marginBottom: '4px',
                                                 }}
                                                 itemStyle={{
-                                                    color: '#ca8a04',
+                                                    color: COLORS.dark,
                                                     fontSize: '13px',
                                                 }}
                                                 formatter={(value) => [
@@ -560,10 +508,9 @@ export default function Dashboard({
                                                     'New Customers',
                                                 ]}
                                             />
-
                                             <Bar
                                                 dataKey="customers"
-                                                fill="#facc15"
+                                                fill={COLORS.soft}
                                                 radius={[6, 6, 0, 0]}
                                                 maxBarSize={36}
                                             />
@@ -571,285 +518,288 @@ export default function Dashboard({
                                     </ResponsiveContainer>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
-                    {/* Loyalty Overview */}
-                    <div className="mt-6 grid gap-6 lg:grid-cols-3">
-                        {/* Loyalty Points Summary */}
-                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:col-span-2">
-                            <div className="border-b border-gray-100 px-6 py-5">
-                                <div>
-                                    <h2 className="text-lg font-bold tracking-tight text-gray-900">
-                                        Loyalty Points
-                                    </h2>
+                    {/* Loyalty Points + Points Activity (redesigned) */}
+{(() => {
+    const earned = Number(stats.totalPointsEarned) || 0;
+    const redeemed = Number(stats.totalPointsRedeemed) || 0;
+    const redemptions = Number(stats.totalRedemptions) || 0;
+    const purchases = Number(stats.totalPurchaseAmount) || 0;
 
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Overview of points earned from purchases and used for
-                                        rewards.
-                                    </p>
-                                </div>
-                            </div>
+    const available = Math.max(0, earned - redeemed);
+    const usedPct = earned > 0 ? Math.min(100, (redeemed / earned) * 100) : 0;
+    const availablePct = earned > 0 ? 100 - usedPct : 0;
 
-                            <div className="p-6">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    {/* Points Earned */}
-                                    <div className="rounded-xl border border-red-100 bg-red-50 p-5">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="text-sm font-semibold text-red-700">
-                                                    Points Earned
-                                                </p>
+    const avgPerRedemption =
+        redemptions > 0 ? Math.round(redeemed / redemptions) : null;
+    const earnRate = purchases > 0 ? (earned / purchases) * 100 : null;
 
-                                                <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
-                                                    {formatNumber(stats.totalPointsEarned)}
-                                                </p>
-                                            </div>
+    const pct = (value: number) =>
+        `${value.toLocaleString('en-PH', { maximumFractionDigits: 1 })}%`;
 
-                                            <div className="rounded-lg bg-white p-2.5 text-red-600 shadow-sm ring-1 ring-red-100">
-                                                <svg
-                                                    className="h-5 w-5"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="1.8"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M12 3v18m9-9H3"
-                                                    />
-                                                </svg>
-                                            </div>
-                                        </div>
+    // dark red = redeemed, pale red = still available
+    const redeemedColor = '#DC2626';
+    const availableColor = '#FECACA';
+    const emptyColor = '#F3F4F6';
 
-                                        <p className="mt-4 text-xs text-red-600">
-                                            Generated from customer purchases
-                                        </p>
-                                    </div>
+    const donutData =
+        earned > 0
+            ? [
+                  {
+                      name: 'Redeemed',
+                      value: Math.min(redeemed, earned),
+                      color: redeemedColor,
+                  },
+                  { name: 'Available', value: available, color: availableColor },
+              ]
+            : [{ name: 'No points yet', value: 1, color: emptyColor }];
 
-                                    {/* Points Redeemed */}
-                                    <div className="rounded-xl border border-yellow-100 bg-yellow-50 p-5">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="text-sm font-semibold text-yellow-700">
-                                                    Points Redeemed
-                                                </p>
+    const metrics = [
+        {
+            label: 'Points earned',
+            value: formatNumber(earned),
+            hint: 'From all purchases',
+        },
+        {
+            label: 'Points redeemed',
+            value: formatNumber(redeemed),
+            hint: 'Spent on rewards',
+        },
+        {
+            label: 'Per redemption',
+            value:
+                avgPerRedemption === null ? '—' : formatNumber(avgPerRedemption),
+            hint: 'Average points used',
+        },
+        {
+            label: 'Earn rate',
+            value:
+                earnRate === null
+                    ? '—'
+                    : earnRate.toLocaleString('en-PH', {
+                          maximumFractionDigits: 1,
+                      }),
+            hint: 'Points per ₱100 spent',
+        },
+    ];
 
-                                                <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
-                                                    {formatNumber(stats.totalPointsRedeemed)}
-                                                </p>
-                                            </div>
+    const legend = [
+        {
+            label: 'Redeemed',
+            value: redeemed,
+            share: usedPct,
+            color: redeemedColor,
+        },
+        {
+            label: 'Available',
+            value: available,
+            share: availablePct,
+            color: availableColor,
+        },
+    ];
 
-                                            <div className="rounded-lg bg-white p-2.5 text-yellow-600 shadow-sm ring-1 ring-yellow-100">
-                                                <svg
-                                                    className="h-5 w-5"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="1.8"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M12 3v18m9-9H3"
-                                                    />
-                                                </svg>
-                                            </div>
-                                        </div>
+    return (
+        <div className="grid gap-6 lg:grid-cols-3">
+            {/* Loyalty Points */}
+            <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm lg:col-span-2">
+                <div className="border-b border-gray-100 px-6 py-5">
+                    <h2 className="text-base font-bold tracking-tight text-gray-900">
+                        Loyalty Points
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                        Points customers have earned from purchases and how many
+                        are still unspent.
+                    </p>
+                </div>
 
-                                        <p className="mt-4 text-xs text-yellow-700">
-                                            Used for completed reward redemptions
-                                        </p>
-                                    </div>
-                                </div>
+                <div className="p-6">
+                    <p className="text-sm font-medium text-gray-500">
+                        Available to redeem
+                    </p>
+                    <p className="mt-2 text-5xl font-bold tracking-tight tabular-nums text-gray-900">
+                        {formatNumber(available)}
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500">
+                        out of {formatNumber(earned)} points earned
+                    </p>
 
-                                {/* Points Utilization */}
-                                <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-5">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">
-                                                Points Utilization
-                                            </p>
+                    {/* Earned points split into redeemed vs available */}
+                    <div
+                        className="mt-6 flex h-3 overflow-hidden rounded-full"
+                        style={{ backgroundColor: emptyColor }}
+                        role="img"
+                        aria-label={`${pct(usedPct)} of earned points redeemed, ${pct(availablePct)} available`}
+                    >
+                        <div
+                            className="h-full transition-all"
+                            style={{
+                                width: `${usedPct}%`,
+                                backgroundColor: redeemedColor,
+                            }}
+                        />
+                        <div
+                            className="h-full transition-all"
+                            style={{
+                                width: `${availablePct}%`,
+                                backgroundColor: availableColor,
+                            }}
+                        />
+                    </div>
 
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                Percentage of earned points that have been used.
-                                            </p>
-                                        </div>
+                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                        <span className="flex items-center gap-2">
+                            <span
+                                className="h-2.5 w-2.5 rounded-sm"
+                                style={{ backgroundColor: redeemedColor }}
+                            />
+                            {formatNumber(redeemed)} redeemed
+                        </span>
+                        <span className="flex items-center gap-2">
+                            <span
+                                className="h-2.5 w-2.5 rounded-sm"
+                                style={{ backgroundColor: availableColor }}
+                            />
+                            {formatNumber(available)} available
+                        </span>
+                    </div>
 
-                                        <span className="shrink-0 text-lg font-bold text-gray-900">
-                                            {stats.totalPointsEarned > 0
-                                                ? Math.round(
-                                                    (stats.totalPointsRedeemed /
-                                                        stats.totalPointsEarned) *
-                                                        100,
-                                                )
-                                                : 0}
-                                            %
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        className="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-200"
-                                        role="progressbar"
-                                        aria-valuenow={
-                                            stats.totalPointsEarned > 0
-                                                ? Math.min(
-                                                    100,
-                                                    Math.round(
-                                                        (stats.totalPointsRedeemed /
-                                                            stats.totalPointsEarned) *
-                                                            100,
-                                                    ),
-                                                )
-                                                : 0
-                                        }
-                                        aria-valuemin={0}
-                                        aria-valuemax={100}
-                                        aria-label="Points utilization"
-                                    >
-                                        <div
-                                            className="h-full rounded-full bg-red-600 transition-all"
-                                            style={{
-                                                width: `${
-                                                    stats.totalPointsEarned > 0
-                                                        ? Math.min(
-                                                            100,
-                                                            (stats.totalPointsRedeemed /
-                                                                stats.totalPointsEarned) *
-                                                                100,
-                                                        )
-                                                        : 0
-                                                }%`,
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div className="mt-3 flex items-center justify-between text-xs">
-                                        <span className="text-gray-500">
-                                            {formatNumber(stats.totalPointsRedeemed)} redeemed
-                                        </span>
-
-                                        <span className="text-gray-500">
-                                            {formatNumber(stats.totalPointsEarned)} earned
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Points Activity */}
-                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div className="border-b border-gray-100 px-6 py-5">
-                                <h2 className="text-lg font-bold tracking-tight text-gray-900">
-                                    Points Activity
-                                </h2>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Earned versus redeemed across the system.
+                    {/* Supporting numbers */}
+                    <div className="mt-6 grid grid-cols-2 gap-x-4 border-t border-gray-100 sm:grid-cols-4 sm:gap-x-0 sm:divide-x sm:divide-gray-100">
+                        {metrics.map((metric) => (
+                            <div
+                                key={metric.label}
+                                className="py-4 sm:px-5 sm:first:pl-0 sm:last:pr-0"
+                            >
+                                <p className="text-xs font-medium text-gray-500">
+                                    {metric.label}
+                                </p>
+                                <p className="mt-1.5 text-xl font-bold tracking-tight tabular-nums text-gray-900">
+                                    {metric.value}
+                                </p>
+                                <p className="mt-0.5 text-xs text-gray-400">
+                                    {metric.hint}
                                 </p>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-                            <div className="p-5">
-                                <div className="h-56">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={loyaltyData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={58}
-                                                outerRadius={82}
-                                                paddingAngle={3}
-                                                stroke="none"
-                                            >
-                                                {loyaltyData.map((_, index) => (
-                                                    <Cell
-                                                        key={`cell-${index}`}
-                                                        fill={loyaltyColors[index]}
-                                                    />
-                                                ))}
-                                            </Pie>
+            {/* Points Activity */}
+            <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+                <div className="border-b border-gray-100 px-6 py-5">
+                    <h2 className="text-base font-bold tracking-tight text-gray-900">
+                        Points Activity
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                        How much of the earned points have been redeemed.
+                    </p>
+                </div>
 
-                                            <Tooltip
-                                                contentStyle={{
-                                                    borderRadius: '12px',
-                                                    border: '1px solid #e5e7eb',
-                                                    boxShadow:
-                                                        '0 8px 24px rgba(0, 0, 0, 0.08)',
-                                                    padding: '10px 12px',
-                                                }}
-                                                labelStyle={{
-                                                    color: '#111827',
-                                                    fontWeight: 600,
-                                                }}
-                                                formatter={(value) =>
-                                                    formatNumber(Number(value))
-                                                }
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div className="mt-4 space-y-3">
-                                    {loyaltyData.map((item, index) => (
-                                        <div
-                                            key={item.name}
-                                            className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2.5"
-                                        >
-                                            <div className="flex min-w-0 items-center gap-3">
-                                                <span
-                                                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                                                    style={{
-                                                        backgroundColor: loyaltyColors[index],
-                                                    }}
-                                                />
-
-                                                <span className="truncate text-sm text-gray-600">
-                                                    {item.name}
-                                                </span>
-                                            </div>
-
-                                            <span className="ml-3 shrink-0 text-sm font-semibold text-gray-900">
-                                                {formatNumber(item.value)}
-                                            </span>
-                                        </div>
+                <div className="p-6">
+                    <div className="relative mx-auto h-52 w-52">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={donutData}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={66}
+                                    outerRadius={92}
+                                    startAngle={90}
+                                    endAngle={-270}
+                                    paddingAngle={
+                                        earned > 0 && available > 0 && redeemed > 0
+                                            ? 2
+                                            : 0
+                                    }
+                                    cornerRadius={4}
+                                    stroke="none"
+                                >
+                                    {donutData.map((slice) => (
+                                        <Cell key={slice.name} fill={slice.color} />
                                     ))}
-                                </div>
-                            </div>
+                                </Pie>
+
+                                {earned > 0 && (
+                                    <Tooltip
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{
+                                            color: '#111827',
+                                            fontWeight: 600,
+                                        }}
+                                        formatter={(value, name) => [
+                                            `${formatNumber(Number(value))} pts`,
+                                            String(name),
+                                        ]}
+                                    />
+                                )}
+                            </PieChart>
+                        </ResponsiveContainer>
+
+                        {/* Centre label */}
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                            <p className="text-3xl font-bold tracking-tight tabular-nums text-gray-900">
+                                {Math.round(usedPct)}%
+                            </p>
+                            <p className="mt-0.5 text-xs text-gray-500">
+                                redeemed
+                            </p>
                         </div>
                     </div>
 
-                    {/* Recent Activity */}
-                    <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                        {/* Recent Transactions */}
-                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
-                                <div>
-                                    <h2 className="text-lg font-bold tracking-tight text-gray-900">
-                                        Recent Transactions
-                                    </h2>
-
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Latest recorded customer purchases.
-                                    </p>
+                    <div className="mt-5 divide-y divide-gray-100 border-t border-gray-100">
+                        {legend.map((item) => (
+                            <div
+                                key={item.label}
+                                className="flex items-center justify-between gap-3 py-3"
+                            >
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <span
+                                        className="h-3 w-3 shrink-0 rounded-sm"
+                                        style={{ backgroundColor: item.color }}
+                                    />
+                                    <span className="truncate text-sm text-gray-600">
+                                        {item.label}
+                                    </span>
                                 </div>
-
-                                <div className="hidden shrink-0 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 sm:block">
-                                    {recentTransactions.length} latest
+                                <div className="shrink-0 text-right">
+                                    <span className="text-sm font-semibold text-gray-900">
+                                        {formatNumber(item.value)}
+                                    </span>
+                                    <span className="ml-2 text-xs tabular-nums text-gray-400">
+                                        {pct(item.share)}
+                                    </span>
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+})()}
+
+                    {/* Recent activity */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        {/* Recent transactions */}
+                        <Card>
+                            <CardHeader
+                                title="Recent Transactions"
+                                description="Latest recorded customer purchases."
+                                badge={<>{recentTransactions.length} latest</>}
+                            />
 
                             <div className="divide-y divide-gray-100">
                                 {recentTransactions.length > 0 ? (
                                     recentTransactions.map((transaction) => (
                                         <div
                                             key={transaction.id}
-                                            className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-gray-50"
+                                            className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-red-50/40"
                                         >
                                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-600">
                                                 {transaction.customer.first_name
@@ -865,7 +815,6 @@ export default function Dashboard({
                                                     {transaction.customer.first_name}{' '}
                                                     {transaction.customer.last_name}
                                                 </p>
-
                                                 <p className="mt-0.5 truncate text-xs text-gray-500">
                                                     {transaction.customer.customer_code}
                                                     {' · '}
@@ -875,11 +824,8 @@ export default function Dashboard({
 
                                             <div className="shrink-0 text-right">
                                                 <p className="text-sm font-bold text-gray-900">
-                                                    {formatCurrency(
-                                                        transaction.purchase_amount,
-                                                    )}
+                                                    {formatCurrency(transaction.purchase_amount)}
                                                 </p>
-
                                                 <span className="mt-1 inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
                                                     +{transaction.points_earned} pts
                                                 </span>
@@ -887,78 +833,32 @@ export default function Dashboard({
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="px-6 py-14 text-center">
-                                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                                            <svg
-                                                className="h-6 w-6"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.7"
-                                                aria-hidden="true"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 2h12"
-                                                />
-                                                <circle cx="10" cy="19" r="1" />
-                                                <circle cx="17" cy="19" r="1" />
-                                            </svg>
-                                        </div>
-
-                                        <p className="mt-4 text-sm font-semibold text-gray-700">
-                                            No transactions yet.
-                                        </p>
-
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            Transaction activity will appear here.
-                                        </p>
-                                    </div>
+                                    <EmptyState
+                                        icon="cart"
+                                        title="No transactions yet."
+                                        text="Transaction activity will appear here."
+                                    />
                                 )}
                             </div>
-                        </div>
+                        </Card>
 
-                        {/* Recent Redemptions */}
-                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
-                                <div>
-                                    <h2 className="text-lg font-bold tracking-tight text-gray-900">
-                                        Recent Redemptions
-                                    </h2>
-
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Latest completed reward redemptions.
-                                    </p>
-                                </div>
-
-                                <div className="hidden shrink-0 rounded-full bg-yellow-50 px-3 py-1.5 text-xs font-semibold text-yellow-700 sm:block">
-                                    {recentRedemptions.length} latest
-                                </div>
-                            </div>
+                        {/* Recent redemptions */}
+                        <Card>
+                            <CardHeader
+                                title="Recent Redemptions"
+                                description="Latest completed reward redemptions."
+                                badge={<>{recentRedemptions.length} latest</>}
+                            />
 
                             <div className="divide-y divide-gray-100">
                                 {recentRedemptions.length > 0 ? (
                                     recentRedemptions.map((redemption) => (
                                         <div
                                             key={redemption.id}
-                                            className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-gray-50"
+                                            className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-red-50/40"
                                         >
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-50 text-yellow-600">
-                                                <svg
-                                                    className="h-5 w-5"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="1.8"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M2 7h20v5H2zM12 7v14M12 7H8.5a2.5 2.5 0 115-1c0 1.5-1.5 1-1.5 1zM12 7h3.5a2.5 2.5 0 10-5-1c0 1.5 1 1 1.5 1z"
-                                                    />
-                                                </svg>
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                                                <Icon name="gift" />
                                             </div>
 
                                             <div className="min-w-0 flex-1">
@@ -966,7 +866,6 @@ export default function Dashboard({
                                                     {redemption.customer.first_name}{' '}
                                                     {redemption.customer.last_name}
                                                 </p>
-
                                                 <p className="mt-0.5 truncate text-xs text-gray-500">
                                                     {redemption.reward.reward_name}
                                                     {' · '}
@@ -974,43 +873,20 @@ export default function Dashboard({
                                                 </p>
                                             </div>
 
-                                            <div className="shrink-0 text-right">
-                                                <span className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700">
-                                                    −{redemption.points_used} pts
-                                                </span>
-                                            </div>
+                                            <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                −{redemption.points_used} pts
+                                            </span>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="px-6 py-14 text-center">
-                                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                                            <svg
-                                                className="h-6 w-6"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.7"
-                                                aria-hidden="true"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M2 7h20v5H2zM12 7v14M12 7H8.5a2.5 2.5 0 115-1c0 1.5-1.5 1-1.5 1z"
-                                                />
-                                            </svg>
-                                        </div>
-
-                                        <p className="mt-4 text-sm font-semibold text-gray-700">
-                                            No redemptions yet.
-                                        </p>
-
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            Reward activity will appear here.
-                                        </p>
-                                    </div>
+                                    <EmptyState
+                                        icon="gift"
+                                        title="No redemptions yet."
+                                        text="Reward activity will appear here."
+                                    />
                                 )}
                             </div>
-                        </div>
+                        </Card>
                     </div>
                 </div>
             </div>
